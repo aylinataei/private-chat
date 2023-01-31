@@ -1,0 +1,109 @@
+*{
+  background-color: rgb(219, 194, 166);
+
+}
+
+h1{
+  background-color: rgb(145, 145, 138);
+  height: 3em;
+  margin-top: 0em;
+}
+
+
+ul {
+  list-style-type: square;
+  
+}
+
+.container header {
+  font-size: 22px;
+  font-weight: 600;
+  color: black;
+}
+
+.tutorial-button{
+  height: 100%;
+    width: 80%;
+    outline: none;
+    border: none;
+    border-radius: 8px;
+    padding: 0 5px;
+    border: 1px solid black;
+}
+
+.tips{
+  float: right;
+}
+ 
+.input-field input {
+  height: 100%;
+  width: 80%;
+  outline: none;
+  border: none;
+  border-radius: 8px;
+  padding: 0 5px;
+  border: 1px solid black;
+}
+
+
+ .input-field .show-hide {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #919191;
+  cursor: pointer;
+  padding: 3px;
+}
+
+button {
+  margin: 25px 0 6px;
+  /* color: #fff; */
+    font-size: 16px;
+    font-weight: 400;
+    background-color: #ab50fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* .button input {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  background-color: #ab50fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+} */
+
+button:hover {
+  background-color: rgb(170, 151, 130);
+} 
+
+#channel{
+text-decoration-line: underline;
+text-decoration-style: double;
+  
+ 
+}
+
+/* .cont{
+  display: none;
+} */
+
+/* .signin {
+  position: relative;
+  max-width: 370px;
+  width: 100%;
+  padding: 25px;
+  border-radius: 8px;
+  background-color: white;
+  margin-top: 8em;
+  /* margin-left: 30%; 
+}
+.cont{
+
+  width: 25em;
+  height: 10em;
+  
+}*/

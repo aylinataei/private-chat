@@ -1,0 +1,63 @@
+{
+  "users": [
+    {
+      "username": "aylin",
+      "password": "aylin"
+    },
+    {
+      "username": "aylin",
+      "password": "aylin"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1,
+      "text": "Use a good primer(anastasia)",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "makeupTips"
+    },
+    {
+      "id": 2,
+      "text": "Use concealer under the eyebrows and around the lips",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "makeupTips"
+    },
+    {
+      "id": 3,
+      "text": "Apply your foundation with a brush instead of a sponge or hands",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "makeupTips"
+    },
+    {
+      "id": 4,
+      "text": "Accentuate eyelashes with an eyelash curler",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "makeupTips"
+    },
+    {
+      "id": 5,
+      "text": "Ta löst puder på ögonfransarna för att få mer volym",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "makeupTips"
+    },
+    {
+      "id": 6,
+      "text": "Accentuate eyelashes with an eyelash curler",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "skin"
+    },
+    {
+      "id": 7,
+      "text": "Ta löst puder på ögonfransarna för att få mer volym",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "skin"
+    },
+    {
+      "id": 7,
+      "text": "Ta löst puder på ögonfransarna för att få mer volym",
+      "date_created": "2023-01-31T18:53:29.851Z",
+      "channel": "tutorial"
+    }
+  ],
+  "channels": []
+}
