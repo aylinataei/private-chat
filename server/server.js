@@ -9,8 +9,8 @@ import jwt from 'jsonwebtoken'
 // import { get } from 'http';
 //Den här importen behövder jag om currentUsername fungerar
 // import {currentUsername} from '../client/script.js'
-// import { question } from 'readline-sync'
-// import bcrypt from 'bcryptjs'
+//  import { question } from 'readline-sync'
+import bcrypt from 'bcrypt'
 
 
 
@@ -24,17 +24,19 @@ app.use(express.json());
 const adapter = new JSONFile('db.json')
 const db = new Low(adapter)
 await db.read()
-db.data = db.data || {
+db.data = {
   users: [], messages:
     [
-      { id: 1, text: "Use a good primer(anastasia)", date_created: new Date(), channel: "makeupTips" },
-      { id: 2, text: "Use concealer under the eyebrows and around the lips", date_created: new Date(), channel: "makeupTips" },
-      { id: 3, text: "Apply your foundation with a brush instead of a sponge or hands", date_created: new Date(), channel: "makeupTips" },
-      { id: 4, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "makeupTips" },
-      { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "makeupTips" },
-      { id: 6, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "skin" },
-      { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "skin" },
-      { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" }
+      // { id: 1, text: "Use a good primer(anastasia)", date_created: new Date(), channel: "makeupTips" },
+      // { id: 2, text: "Use concealer under the eyebrows and around the lips", date_created: new Date(), channel: "makeupTips" },
+      // { id: 3, text: "Apply your foundation with a brush instead of a sponge or hands", date_created: new Date(), channel: "makeupTips" },
+      // { id: 4, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "makeupTips" },
+      // { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "makeupTips" },
+      // { id: 6, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "skin" },
+      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "skin" },
+      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" },
+      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" },
+      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" }
     ],
   channels: []
 
@@ -72,15 +74,48 @@ const todo = [
   { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym" }
 ];
 
-function authenticateUser(userName, password) {
+function authenticateUser(username, password) {
   // Tips: Array.some
   const users = db.data.users
   console.log('users:', users)
-  const found = users.find(user => user.name === userName && user.password === password)
+  const found = users.find(user => user.username === username && user.password === password)
 
   return Boolean(found)
 }
 
+
+function userIsAuthorized(req) {
+  // JWT kan skickas antingen i request body, med querystring, eller i header: Authorization
+  let token = req.body.token || req.query.token
+  if (!token) {
+    let x = req.headers['authorization']
+    if (x === undefined) {
+      // Vi hittade ingen token, authorization fail
+      return false
+    }
+    token = x.substring(7)
+    // Authorization: Bearer JWT......
+    // substring(7) för att hoppa över "Bearer " och plocka ut JWT-strängen
+  }
+
+  console.log('Token: ', token)
+  if (token) {
+    let decoded
+    try {
+      decoded = jwt.verify(token, process.env.SECRET)
+    } catch (error) {
+      console.log('Catch! Felaktig token!!', error.message)
+      return false
+    }
+    const decodedToken = jwt.decode(token, process.env.SECRET)
+    console.log('decoded: ', decodedToken)
+    return decodedToken
+
+  } else {
+    console.log('Ingen token')
+    return false
+  }
+}
 
 // This allows server to serve static files
 
@@ -99,10 +134,22 @@ app.get('/messages', (req, resp) => {
 //Server endpoint to create a message
 app.post('/messages', async (req, resp) => {
   //Här har jag lagt till currentUsername för att testa om det syns på tipsen
+
+  const user = userIsAuthorized(req)
+
+  console.log(user)
+
+
   const message = req.body
   const { messages } = db.data
 
   message.date_created = new Date()
+
+  if (user) {
+    message.user = user
+  } else {
+    message.user = { username: 'anonymous' }
+  }
 
   const savedMessage = messages.push(message)
 
@@ -129,6 +176,10 @@ app.post('/users', async (req, resp) => {
   resp.status = 201
 
   resp.send(`${savedUser}`)
+  const salt = bcrypt.genSaltSync(10);
+  let hashedPassword = bcrypt.hashSync(user.password, salt)
+  console.log(salt)
+
 
 })
 
@@ -146,25 +197,29 @@ app.use((req, res, next) => {
   next()
 })
 
+
+
 // Routes
 // POST /login
 app.post('/login', (req, res) => {
 
-  const { name, password } = req.body
+  const { username, password } = req.body
 
   // Finns användaren i databasen?
-  if (authenticateUser(name, password)) {
-    const userToken = createToken(name)
+  if (authenticateUser(username, password)) {
+    const userToken = createToken(username)
     res.status(200).send(userToken)
 
   } else {
     res.sendStatus(401)  // Unauthorized
     return
   }
+
+
 })
 
-function createToken(name) {
-  const user = { name: name }
+function createToken(username) {
+  const user = { username: username }
   console.log('createToken: ', user, process.env.SECRET)
   const token = jwt.sign(user, process.env.SECRET, { expiresIn: '1h' })
   user.token = token
@@ -173,39 +228,63 @@ function createToken(name) {
 }
 
 // GET /secret
-app.get('/secret', (req, res) => {
-  // JWT kan skickas antingen i request body, med querystring, eller i header: Authorization
-  let token = req.body.token || req.query.token
-  if (!token) {
-    let x = req.headers['authorization']
-    if (x === undefined) {
-      // Vi hittade ingen token, authorization fail
-      res.sendStatus(401)
-      return
-    }
-    token = x.substring(7)
-    // Authorization: Bearer JWT......
-    // substring(7) för att hoppa över "Bearer " och plocka ut JWT-strängen
-  }
+// app.get('/secret', (req, res) => {
+//   // JWT kan skickas antingen i request body, med querystring, eller i header: Authorization
+//   let token = req.body.token || req.query.token
+//   if (!token) {
+//     let x = req.headers['authorization']
+//     if (x === undefined) {
+//       // Vi hittade ingen token, authorization fail
+//       res.sendStatus(401)
+//       return
+//     }
+//     token = x.substring(7)
+//     // Authorization: Bearer JWT......
+//     // substring(7) för att hoppa över "Bearer " och plocka ut JWT-strängen
+//   }
 
-  console.log('Token: ', token)
-  if (token) {
-    let decoded
-    try {
-      decoded = jwt.verify(token, process.env.SECRET)
-    } catch (error) {
-      console.log('Catch! Felaktig token!!')
-      res.sendStatus(401)
-      return
-    }
-    console.log('decoded: ', decoded)
-    res.send('You have access to the secret stuff.')
+//   console.log('Token: ', token)
+//   if (token) {
+//     let decoded
+//     try {
+//       decoded = jwt.verify(token, process.env.SECRET)
+//     } catch (error) {
+//       console.log('Catch! Felaktig token!!')
+//       res.sendStatus(401)
+//       return
+//     }
+//     console.log('decoded: ', decoded)
+//     res.send('You have access to the secret stuff.')
 
-  } else {
-    console.log('Ingen token')
-    res.sendStatus(401)
-  }
-})
+//   } else {
+//     console.log('Ingen token')
+//     res.sendStatus(401)
+//   }
+// })
+
+
+//REGISTER
+// const salt = bcrypt.genSaltSync(10);
+//     let hashedPassword = bcrypt.hashSync(password, salt)
+//     let user = { username, password: hashedPassword }
+
+
+//LOGIN
+//     let match = users.find(user => user.username == username)
+//     if (!match) {
+//       console.log('> Wrong username\n')
+//     } else {
+//       let correctPassword = bcrypt.compareSync(password, match.password)
+//       if (correctPassword) {
+//         console.log('> Welcome user!')
+//       } else {
+//         console.log('> Password does not match.')
+//       }
+//     }
+
+
+
+
 
 
 // const users = []
@@ -222,8 +301,10 @@ app.get('/secret', (req, res) => {
 //   if (input == '1') {
 //     let username = question('> Please enter username: ')
 //     let password = question('> Please enter password: ')
+
 //     let hashedPassword = bcrypt.hashSync(password, salt)
 //     let user = { username, password: hashedPassword }
+
 //     users.push(user)
 //     console.log('')
 
@@ -231,6 +312,8 @@ app.get('/secret', (req, res) => {
 //   } else if (input == '3') {
 //     let username = question('> Please enter username: ')
 //     let password = question('> Please enter password: ')
+
+
 //     let match = users.find(user => user.username == username)
 //     if (!match) {
 //       console.log('> Wrong username\n')

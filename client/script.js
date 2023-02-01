@@ -7,14 +7,15 @@ const logoutBnt = document.querySelector('#Logout')
 const tutorialBtn = document.querySelector('#tutorialBtn')
 const makeUpTipsBtn = document.querySelector('#makeUpTipsBtn')
 const welcomeTag = document.getElementById('welcomeTag')
+const title = document.querySelector('#title')
 
 let currentUsername = 'guest'
 
-let activeChannel = 'tutorial'
+let activeChannel = 'makeupTips'
 let messages = []
 
 const channels = [
-  {id: ''}
+  { id: '' }
 ]
 
 // --- FUNCTIONS  START ---
@@ -53,9 +54,9 @@ const getAllMessages = async () => {
 
   messages = list
 
-  list.filter(message => message.channel === 'makeupTips').forEach(tip => {
+  list.filter(message => message.channel === activeChannel).forEach(message => {
     let li = document.createElement('li')
-    li.innerText = `${tip.date_created} | ${tip.text}.`
+    li.innerText = `${message.user ? message.user.username : ''} | ${message.date_created} | ${message.text}.`
     makeupTips.appendChild(li)
   })
 }
@@ -72,16 +73,19 @@ sendButton.addEventListener('click', async () => {
   console.log(value)
 
 
-  const newMessage = { id: 123, text: value }
+  const newMessage = { id: 123, text: value, channel: activeChannel }
 
   // Object that holds settings for request to server
+  const jwt = localStorage.getItem(JWT_KEY)
   const options = {
     method: 'POST',
     body: JSON.stringify(newMessage),
     headers: {
-      "Content-Type": "application/json"
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + jwt
     }
   }
+
 
   // Call to server
   const response = await fetch('/messages', options)
@@ -126,6 +130,7 @@ registerBtn.addEventListener('click', async () => {
 
 })
 const JWT_KEY = 'securChatJWT';
+const USER = 'secureCharUser'
 let isLoggedIn = false
 
 function updateLoginStatus() {
@@ -153,10 +158,11 @@ loginBnt.addEventListener('click', async () => {
   const response = await fetch('/login', options)
   if (response.status === 200) {
     console.log('Login successful')
-    const userToken = await response.json()
-    console.log('User token: ', userToken)
-    // Spara userToken.token
-    localStorage.setItem(JWT_KEY, userToken.token)
+    const user = await response.json()
+    console.log('User token: ', user)
+    // Spara user.token
+    localStorage.setItem(JWT_KEY, user.token)
+    localStorage.setItem(USER, JSON.stringify(user))
     isLoggedIn = true
     //när man loggar ut msåte jag sätta dehär till true istället för false det gör att knappen kommer bli disabled
     tutorialBtn.disabled = false;
@@ -167,6 +173,7 @@ loginBnt.addEventListener('click', async () => {
     console.log('Login failed, status: ' + response.status)
   }
   updateLoginStatus()
+
 })
 
 
@@ -189,26 +196,33 @@ loginBnt.addEventListener('click', async () => {
 // })
 
 makeUpTipsBtn.addEventListener('click', () => {
-    // If request is successful clear all li child elements
-    while (makeupTips.firstChild) {
-      makeupTips.removeChild(makeupTips.firstChild);
-    }
-   
-    const list = messages.filter(message => message.channel === 'makeupTips')
-  
-    list.forEach(tip => {
-      let li = document.createElement('li')
-      li.innerText = `${tip.date_created} | ${tip.text}.`
-      makeupTips.appendChild(li)
-    })
-})
-
-tutorialBtn.addEventListener('click', () => {
   // If request is successful clear all li child elements
   while (makeupTips.firstChild) {
     makeupTips.removeChild(makeupTips.firstChild);
   }
- 
+
+  activeChannel = 'makeupTips'
+  title.innerHTML = activeChannel
+
+  const list = messages.filter(message => message.channel === 'makeupTips')
+
+  list.forEach(tip => {
+    let li = document.createElement('li')
+    li.innerText = `${tip.date_created} | ${tip.text}.`
+    makeupTips.appendChild(li)
+  })
+})
+
+tutorialBtn.addEventListener('click', () => {
+  // If request is successful clear all li child elements
+
+  activeChannel = 'tutorial'
+  title.innerHTML = activeChannel
+
+  while (makeupTips.firstChild) {
+    makeupTips.removeChild(makeupTips.firstChild);
+  }
+
   const list = messages.filter(message => message.channel === 'tutorial')
 
   list.forEach(tip => {
@@ -224,6 +238,14 @@ tutorialBtn.addEventListener('click', () => {
 // Function to start application
 const startApplication = async () => {
   getAllMessages()
+
+  const user = JSON.parse(localStorage.getItem(USER))
+
+  console.log(user)
+  if(user) {
+    welcomeTag.innerHTML = "Welcome " + user.username
+  }
+
 }
 
 // Listen to the dom being finished loading so we can use document
