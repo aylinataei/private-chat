@@ -5,11 +5,6 @@ import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
 import * as dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-// import { authenticateUser } from './databas.js'
-// import { get } from 'http';
-//Den här importen behövder jag om currentUsername fungerar
-// import {currentUsername} from '../client/script.js'
-//  import { question } from 'readline-sync'
 import bcrypt from 'bcrypt'
 
 
@@ -24,63 +19,30 @@ app.use(express.json());
 const adapter = new JSONFile('db.json')
 const db = new Low(adapter)
 await db.read()
-db.data = {
+db.data = db.data || {
   users: [], messages:
-    [
-      // { id: 1, text: "Use a good primer(anastasia)", date_created: new Date(), channel: "makeupTips" },
-      // { id: 2, text: "Use concealer under the eyebrows and around the lips", date_created: new Date(), channel: "makeupTips" },
-      // { id: 3, text: "Apply your foundation with a brush instead of a sponge or hands", date_created: new Date(), channel: "makeupTips" },
-      // { id: 4, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "makeupTips" },
-      // { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "makeupTips" },
-      // { id: 6, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "skin" },
-      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "skin" },
-      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" },
-      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" },
-      // { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" }
-    ],
-  channels: []
-
+    [],
 }
-
-// db.data = {
-//   users: [],  messages: [
-//     { id: 1, text: "Use a good primer(anastasia)", date_created: new Date(),channel: "makeupTips" },
-//     { id: 2, text: "Use concealer under the eyebrows and around the lips", date_created: new Date(), channel: "makeupTips" },
-//     { id: 3, text: "Apply your foundation with a brush instead of a sponge or hands", date_created: new Date(), channel: "makeupTips" },
-//     { id: 4, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "makeupTips" },
-//     { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "makeupTips" },
-//     { id: 6, text: "Accentuate eyelashes with an eyelash curler", date_created: new Date(), channel: "skin" },
-//     { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "skin" },
-//     { id: 7, text: "Ta löst puder på ögonfransarna för att få mer volym", date_created: new Date(), channel: "tutorial" }
-//   ], channels: []
-// }
-
-// db.data = {
-//   users: [], messages: [
-//     { id: 6, text: "this is how you use", date_created: new Date(), channels: "tutorial" },
-//     { id: 7, text: "this is how you use", date_created: new Date(), channels: "tutorial" },
-//     { id: 8, text: "this is how you use", date_created: new Date(), channels: "tutorial" },
-//   ], channels: []
-// }
-
-
-let count = 5;
-
-const todo = [
-  { id: 1, text: "Use a good primer(anastasia)" },
-  { id: 2, text: "Use concealer under the eyebrows and around the lips" },
-  { id: 3, text: "Apply your foundation with a brush instead of a sponge or hands" },
-  { id: 4, text: "Accentuate eyelashes with an eyelash curler" },
-  { id: 5, text: "Ta löst puder på ögonfransarna för att få mer volym" }
-];
 
 function authenticateUser(username, password) {
   // Tips: Array.some
-  const users = db.data.users
-  console.log('users:', users)
-  const found = users.find(user => user.username === username && user.password === password)
 
-  return Boolean(found)
+  let match = db.data.users.find(user => user.username == username)
+
+  console.log(match)
+  if (!match) {
+    console.log('> Wrong username\n')
+    return false
+  } else {
+    let correctPassword = bcrypt.compareSync(password, match.password)
+    if (correctPassword) {
+      return true
+      console.log('> Welcome user!')
+    } else {
+      return false
+      console.log('> Password does not match.')
+    }
+  }
 }
 
 
@@ -116,12 +78,6 @@ function userIsAuthorized(req) {
     return false
   }
 }
-
-// This allows server to serve static files
-
-app.get('/todo', (req, resp) => {
-  resp.send(todo);
-})
 
 
 
@@ -169,6 +125,11 @@ app.post('/users', async (req, resp) => {
 
   console.log(user)
 
+  const salt = bcrypt.genSaltSync(10);
+  let hashedPassword = bcrypt.hashSync(user.password, salt)
+
+  user.password = hashedPassword
+
   const savedUser = users.push(user)
 
   await db.write()
@@ -176,9 +137,10 @@ app.post('/users', async (req, resp) => {
   resp.status = 201
 
   resp.send(`${savedUser}`)
-  const salt = bcrypt.genSaltSync(10);
-  let hashedPassword = bcrypt.hashSync(user.password, salt)
-  console.log(salt)
+
+
+
+
 
 
 })
@@ -214,6 +176,17 @@ app.post('/login', (req, res) => {
     res.sendStatus(401)  // Unauthorized
     return
   }
+  let match = db.data.users.find(user => user.username == username)
+  if (!match) {
+    console.log('> Wrong username\n')
+  } else {
+    let correctPassword = bcrypt.compareSync(password, match.password)
+    if (correctPassword) {
+      console.log('> Welcome user!')
+    } else {
+      console.log('> Password does not match.')
+    }
+  }
 
 
 })
@@ -227,106 +200,6 @@ function createToken(username) {
   return user
 }
 
-// GET /secret
-// app.get('/secret', (req, res) => {
-//   // JWT kan skickas antingen i request body, med querystring, eller i header: Authorization
-//   let token = req.body.token || req.query.token
-//   if (!token) {
-//     let x = req.headers['authorization']
-//     if (x === undefined) {
-//       // Vi hittade ingen token, authorization fail
-//       res.sendStatus(401)
-//       return
-//     }
-//     token = x.substring(7)
-//     // Authorization: Bearer JWT......
-//     // substring(7) för att hoppa över "Bearer " och plocka ut JWT-strängen
-//   }
-
-//   console.log('Token: ', token)
-//   if (token) {
-//     let decoded
-//     try {
-//       decoded = jwt.verify(token, process.env.SECRET)
-//     } catch (error) {
-//       console.log('Catch! Felaktig token!!')
-//       res.sendStatus(401)
-//       return
-//     }
-//     console.log('decoded: ', decoded)
-//     res.send('You have access to the secret stuff.')
-
-//   } else {
-//     console.log('Ingen token')
-//     res.sendStatus(401)
-//   }
-// })
-
-
-//REGISTER
-// const salt = bcrypt.genSaltSync(10);
-//     let hashedPassword = bcrypt.hashSync(password, salt)
-//     let user = { username, password: hashedPassword }
-
-
-//LOGIN
-//     let match = users.find(user => user.username == username)
-//     if (!match) {
-//       console.log('> Wrong username\n')
-//     } else {
-//       let correctPassword = bcrypt.compareSync(password, match.password)
-//       if (correctPassword) {
-//         console.log('> Welcome user!')
-//       } else {
-//         console.log('> Password does not match.')
-//       }
-//     }
-
-
-
-
-
-
-// const users = []
-// const salt = bcrypt.genSaltSync(10);
-// console.log('Starting service... salt is ', salt)
-
-
-// let input = ''
-
-// while (input != 'q') {
-//   input = question('Choose an option: ')
-//   // console.log('You chose: ', input)
-
-//   if (input == '1') {
-//     let username = question('> Please enter username: ')
-//     let password = question('> Please enter password: ')
-
-//     let hashedPassword = bcrypt.hashSync(password, salt)
-//     let user = { username, password: hashedPassword }
-
-//     users.push(user)
-//     console.log('')
-
-
-//   } else if (input == '3') {
-//     let username = question('> Please enter username: ')
-//     let password = question('> Please enter password: ')
-
-
-//     let match = users.find(user => user.username == username)
-//     if (!match) {
-//       console.log('> Wrong username\n')
-//     } else {
-//       let correctPassword = bcrypt.compareSync(password, match.password)
-//       if (correctPassword) {
-//         console.log('> Welcome user!')
-//       } else {
-//         console.log('> Password does not match.')
-//       }
-//     }
-//   }
-// }
 
 
 export default app;

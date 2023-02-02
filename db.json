@@ -1,8 +1,16 @@
 {
   "users": [
     {
+      "username": "arian",
+      "password": "$2b$10$UKTtxW1N9dwbU9kefSDJ5eUD.O9EkU1d0UUsOdjQYkMJ.Pg.7RQJO"
+    },
+    {
       "username": "aylin",
-      "password": "ataei"
+      "password": "$2b$10$F7g/2.xi6QRE.srQ4/nMwOUNnkKRibUvUKSZko6lVOTp6Fk1AJPHq"
+    },
+    {
+      "username": "aylin",
+      "password": "$2b$10$z/8fU3Mvy0swDVkB7igQ4eN39Lo.MHifd8tAwmgOTnd3QK8mF9lmO"
     }
   ],
   "messages": [
@@ -10,13 +18,34 @@
       "id": 123,
       "text": "hej",
       "channel": "makeupTips",
-      "date_created": "2023-02-01T20:34:56.930Z",
+      "date_created": "2023-02-02T20:02:05.449Z",
+      "user": {
+        "username": "arian",
+        "iat": 1675368105,
+        "exp": 1675371705
+      }
+    },
+    {
+      "id": 123,
+      "text": "hej",
+      "channel": "makeupTips",
+      "date_created": "2023-02-02T20:05:29.181Z",
       "user": {
         "username": "aylin",
-        "iat": 1675283692,
-        "exp": 1675287292
+        "iat": 1675368325,
+        "exp": 1675371925
+      }
+    },
+    {
+      "id": 123,
+      "text": "test",
+      "channel": "makeupTips",
+      "date_created": "2023-02-02T20:09:42.952Z",
+      "user": {
+        "username": "arian",
+        "iat": 1675368574,
+        "exp": 1675372174
       }
     }
-  ],
-  "channels": []
+  ]
 }

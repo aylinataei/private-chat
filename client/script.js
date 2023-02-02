@@ -8,17 +8,35 @@ const tutorialBtn = document.querySelector('#tutorialBtn')
 const makeUpTipsBtn = document.querySelector('#makeUpTipsBtn')
 const welcomeTag = document.getElementById('welcomeTag')
 const title = document.querySelector('#title')
+const hiddenTextBox = document.querySelector('.hiddenTextBox')
+
 
 let currentUsername = 'guest'
-
 let activeChannel = 'makeupTips'
 let messages = []
+let isLoggedIn = false
 
-const channels = [
-  { id: '' }
-]
+const JWT_KEY = 'securChatJWT';
+const USER = 'secureCharUser'
 
 // --- FUNCTIONS  START ---
+
+function calculateTime(date) {
+  const now = new Date();
+  const timeDifference = now - date;
+
+  const seconds = Math.floor(timeDifference / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  return {
+    days,
+    hours: hours % 24,
+    minutes: minutes % 60,
+    seconds: seconds % 60
+  };
+}
 
 //Function to get all messages from server
 const getAllMessages = async () => {
@@ -56,7 +74,14 @@ const getAllMessages = async () => {
 
   list.filter(message => message.channel === activeChannel).forEach(message => {
     let li = document.createElement('li')
-    li.innerText = `${message.user ? message.user.username : ''} | ${message.date_created} | ${message.text}.`
+    const timeSince = calculateTime(new Date(message.date_created))
+    const dayString = `${timeSince.days} days ago , `
+    const hourString = `${timeSince.hours} hours ago , `
+    const minutesString = `${timeSince.minutes} minutes ago , `
+    const secondsString = `${timeSince.seconds} seconds ago  `
+    const dateString = `${timeSince.days > 0 ? dayString : ''} ${timeSince.hours > 0 ? hourString : ''} ${timeSince.minutes > 0 ? minutesString : ''} ${timeSince.seconds > 0 ? secondsString: ''}`
+
+    li.innerText = `${message.user ? message.user.username : ''} | ${dateString} | ${message.text}.`
     makeupTips.appendChild(li)
   })
 }
@@ -129,13 +154,19 @@ registerBtn.addEventListener('click', async () => {
   console.log('Success!')
 
 })
-const JWT_KEY = 'securChatJWT';
-const USER = 'secureCharUser'
-let isLoggedIn = false
 
 function updateLoginStatus() {
   loginBnt.disabled = isLoggedIn
   logoutBnt.disabled = !isLoggedIn
+  tutorialBtn.disabled = !isLoggedIn;
+
+  if (isLoggedIn) {
+    hiddenTextBox.classList.add('hidden')
+    tutorialBtn.innerHtml = 'Tutorial (open)';
+  } else {
+    hiddenTextBox.classList.remove('hidden')
+    tutorialBtn.innerHtml = 'Tutorial (locked) ';
+  }
 }
 
 
@@ -155,6 +186,7 @@ loginBnt.addEventListener('click', async () => {
       "Content-Type": "application/json"
     }
   }
+  // 
   const response = await fetch('/login', options)
   if (response.status === 200) {
     console.log('Login successful')
@@ -167,7 +199,8 @@ loginBnt.addEventListener('click', async () => {
     //när man loggar ut msåte jag sätta dehär till true istället för false det gör att knappen kommer bli disabled
     tutorialBtn.disabled = false;
     currentUsername = usernameValue;
-    welcomeTag.innerHTML = "Welcome " + usernameValue
+    hiddenTextBox.classList.add('hidden')
+    welcomeTag.innerHTML = "Hello " + usernameValue
 
   } else {  // status 401 unauthorized
     console.log('Login failed, status: ' + response.status)
@@ -177,23 +210,20 @@ loginBnt.addEventListener('click', async () => {
 })
 
 
-// logoutBnt.addEventListener('click', async () => {
-//   const usernameValue = document.querySelector('#username').value
-//   const passwordValue = document.querySelector('#password').value
 
-//   const user = {
-//     username: usernameValue,
-//     password: passwordValue
-//   }
+logoutBnt.addEventListener('click', async () => {
+  localStorage.removeItem(JWT_KEY);
+  localStorage.removeItem(USER);
+  isLoggedIn = false;
+  hiddenTextBox.classList.remove('hidden')
+  tutorialBtn.disabled = true;
+  console.log('logout succited')
+  welcomeTag.innerHTML = "Welcome User"
 
-//   const options = {
-//     method: 'POST',
-//     body: JSON.stringify(user),
-//     headers: {
-//       "Content-Type": "application/json"
-//     }
-//   }
-// })
+  updateLoginStatus()
+})
+
+// 
 
 makeUpTipsBtn.addEventListener('click', () => {
   // If request is successful clear all li child elements
@@ -206,9 +236,18 @@ makeUpTipsBtn.addEventListener('click', () => {
 
   const list = messages.filter(message => message.channel === 'makeupTips')
 
-  list.forEach(tip => {
+  list.filter(message => message.channel === activeChannel).forEach(message => {
     let li = document.createElement('li')
-    li.innerText = `${tip.date_created} | ${tip.text}.`
+    const timeSince = calculateTime(new Date(message.date_created))
+    const dayString = `${timeSince.days} days ago , `
+    const hourString = `${timeSince.hours} hours ago , `
+    const minutesString = `${timeSince.minutes} minutes ago , `
+    const secondsString = `${timeSince.seconds} seconds ago  `
+    const dateString = `${timeSince.days > 0 ? dayString : ''} ${timeSince.hours > 0 ? hourString : ''} ${timeSince.minutes > 0 ? minutesString : ''} ${timeSince.seconds > 0 ? secondsString: ''}`
+    console.log(dateString)
+
+    console.log(calculateTime(message.date_created))
+    li.innerText = `${message.user ? message.user.username : ''} | ${dateString} | ${message.text}.`
     makeupTips.appendChild(li)
   })
 })
@@ -225,9 +264,15 @@ tutorialBtn.addEventListener('click', () => {
 
   const list = messages.filter(message => message.channel === 'tutorial')
 
-  list.forEach(tip => {
+  list.filter(message => message.channel === activeChannel).forEach(message => {
     let li = document.createElement('li')
-    li.innerText = `${tip.date_created} | ${tip.text}.`
+    const timeSince = calculateTime(new Date(message.date_created))
+    const dayString = `${timeSince.days} days ago , `
+    const hourString = `${timeSince.hours} hours ago , `
+    const minutesString = `${timeSince.minutes} minutes ago , `
+    const secondsString = `${timeSince.seconds} seconds ago  `
+    const dateString = `${timeSince.days > 0 ? dayString : ''} ${timeSince.hours > 0 ? hourString : ''} ${timeSince.minutes > 0 ? minutesString : ''} ${timeSince.seconds > 0 ? secondsString: ''}`
+    li.innerText = `${message.user ? message.user.username : ''} | ${dateString} | ${message.text}.`
     makeupTips.appendChild(li)
   })
 })
@@ -242,9 +287,14 @@ const startApplication = async () => {
   const user = JSON.parse(localStorage.getItem(USER))
 
   console.log(user)
-  if(user) {
+  if (user) {
     welcomeTag.innerHTML = "Welcome " + user.username
+    isLoggedIn = true
+  } else {
+    isLoggedIn = false
   }
+
+  updateLoginStatus()
 
 }
 
@@ -252,121 +302,3 @@ const startApplication = async () => {
 document.addEventListener('DOMContentLoaded', startApplication);
 
 
-// // Används med localStorage
-// const JWT_KEY = 'bookapi-jwt'
-// let isLoggedIn = false
-
-// function updateLoginStatus() {
-//   btnLogin.disabled = isLoggedIn
-//   btnLogout.disabled = !isLoggedIn
-// }
-
-// btnLogin.addEventListener('click', async () => {
-//   // hämta username och password
-//   // skicka med POST request till servern
-//   // när servern svarar:
-//   // - updatera gränssnittet
-//   // - spara JWT i localStorage
-
-//   const user = {
-//     name: inputUsername.value,
-//     password: inputPassword.value
-//   }
-//   // "Optimistisk" kod
-//   const options = {
-//     method: 'POST',
-//     body: JSON.stringify(user),
-//     headers: {
-//       // MIME type: application/json
-//       "Content-Type": "application/json"
-//     }
-//   }
-//   const response = await fetch('/login', options)
-//   if (response.status === 200) {
-//     console.log('Login successful')
-//     const userToken = await response.json()
-//     console.log('User token: ', userToken)
-//     // Spara userToken.token
-//     localStorage.setItem(JWT_KEY, userToken.token)
-//     isLoggedIn = true
-
-//   } else {  // status 401 unauthorized
-//     console.log('Login failed, status: ' + response.status)
-//   }
-//   updateLoginStatus()
-// })
-
-
-
-// async function getBooks() {
-//   // 1. skicka ett request till backend: GET /api/books
-//   // 2. backend skickar tillbaka lista med böcker (förhoppningsvis)
-//   // 3. spara datan i en variabel
-//   // 4. rendera DOM-element som visar datan == skapa DOM-element som innehåller titel och författare som text
-
-//   // Skicka request med AJAX. Ett enkelt GET-request behöver inga inställningar
-//   let bookData = null
-//   try {
-//     const response = await fetch('/api/books')
-//     if (response.status !== 200) {
-//       console.log('Could not contact server. Status: ' + response.status)
-//       return
-//     }
-//     bookData = await response.json()
-//     console.log('Data from server: ', bookData)
-
-//   } catch (error) {
-//     console.log('Something went wrong when fetching data from server. (GET) \n' + error.message)
-//     return
-//   }
-
-//   booksList.innerHTML = ''
-
-//   bookData.forEach(book => {
-//     // Bok-objekt har egenskaperna: title, authorName, id
-//     // skapa ett <li> element
-//     // fyll elementet med bokdata (titel osv.)
-//     // lägg till sist i <ul>
-
-//     let li = document.createElement('li')
-//     li.innerText = `${book.title} by ${book.authorName}.`
-//     booksList.appendChild(li)
-//   })
-// }
-// btnGetBooks.addEventListener('click', getBooks)
-
-
-// btnPostBook.addEventListener('click', async () => {
-//   // 0. skicka med JWT om vi är inloggade
-//   // 1. skicka ett POST /api/books request med data i request body
-//   // 2. Vad skickar servern för svar?
-//   // 3. uppdatera gränssnittet
-
-//   const newBook = {
-//     title: 'Liftarens guide till galaxen',
-//     authorName: 'Douglas Adams',
-//     id: 42
-//   }
-
-//   const jwt = localStorage.getItem(JWT_KEY)
-//   const options = {
-//     method: 'POST',
-//     body: JSON.stringify(newBook),
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Authorization': 'Bearer ' + jwt
-//     }
-//   }
-//   // TODO: lägg till try/catch eftersom fetch är en osäker operation
-//   const response = await fetch('/api/books', options)
-
-//   if (response.status === 200) {
-//     // Allt gick bra
-//     // Skicka ett nytt GET request och uppdatera gränssnittet
-//     getBooks()
-
-//   } else {
-//     // Något gick fel
-//     console.log('Något gick fel vid POST request! status=', response.status)
-//   }
-// })

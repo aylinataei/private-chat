@@ -1,6 +1,9 @@
-*{
-  background-color: rgb(219, 194, 166);
 
+body{
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgb(166, 197, 219);
 }
 
 h1{
@@ -33,6 +36,9 @@ ul {
 
 .tips{
   float: right;
+  background-color: rgb(235, 235, 235);
+  border: solid;
+  padding: 10px;
 }
  
 .input-field input {
@@ -62,7 +68,7 @@ button {
   /* color: #fff; */
     font-size: 16px;
     font-weight: 400;
-    background-color: #ab50fa;
+    background-color: #7472d1;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -77,19 +83,18 @@ button {
 } */
 
 button:hover {
-  background-color: rgb(170, 151, 130);
+  background-color: rgb(169, 174, 238);
 } 
 
-#channel{
-text-decoration-line: underline;
-text-decoration-style: double;
-  
- 
-}
 
-/* .cont{
-  display: none;
-} */
+
+
+.cont{
+  border: solid;
+  width: 50%;
+  padding: 20px;
+  border-radius: 10px;
+}
 
 /* .signin {
   position: relative;
@@ -107,3 +112,28 @@ text-decoration-style: double;
   height: 10em;
   
 }*/
+
+.hidden {
+  display: none;
+}
+
+.titleForWebsite{
+  border: solid;
+  text-align: center;
+  padding-top: 20px;
+  margin-top: 10px;
+  border-radius: 15px;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 30px;
+}
+
+.help input{
+  background-color: #7472d1;
+  border: none;
+}
+
+.help input:hover{
+  background-color: rgb(169, 174, 238);
+}
